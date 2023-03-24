@@ -1,0 +1,43 @@
+# Alle Charaktere ausgeben
+GET http://localhost:5086/charaktere
+###
+
+# 2 Charaktere erstellen
+POST http://localhost:5086/charaktere
+Content-Type: application/json
+
+{
+  "name": "Venti",
+  "element": "Anemo",
+  "waffentyp": "Zweihänder",
+  "sterne": 5,
+  "habich": false
+}
+###
+POST http://localhost:5086/charaktere
+Content-Type: application/json
+
+{
+  "name": "Kaeya",
+  "element": "Cryo",
+  "waffentyp": "Einhänder",
+  "sterne": 4,
+  "habich": true
+}
+
+###
+# Charakter ändern
+PUT http://localhost:5086/charaktere/1
+Content-Type: application/json
+
+{
+  "name": "Venti",
+  "element": "Anemo",
+  "waffentyp": "Bogen",
+  "sterne": 5,
+  "habich": false
+}
+
+###
+# Charakter löschen
+DELETE http://localhost:5086/charaktere/2
