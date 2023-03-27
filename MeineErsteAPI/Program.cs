@@ -1,7 +1,11 @@
+using MeineErsteAPI;
 using MeineErsteAPI.Models;
 using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<FakeDb>();
+
 var app = builder.Build();
 app.MapGet("/", () => "Hello World");
 
@@ -20,35 +24,31 @@ app.MapGet("/", () => "Hello World");
 // - Sterne (4 oder 5)
 // - HabIch
 
-var naechsterCharId = 0;
-var charDict = new ConcurrentDictionary<int, Charakter>();
-
-
 // Alle Charaktere werden zurückgegeben
-app.MapGet("/charaktere", () => charDict.Values);
+app.MapGet("/charaktere", (FakeDb fakeDb) => fakeDb.CharDict.Values);
 
 
 // Ein bestimmter Charakter wird zurückgegeben
-app.MapGet("/charaktere/{id}", (int id) =>
+app.MapGet("/charaktere/{id}", (int id, FakeDb fakeDb) =>
 {
-	if (charDict.TryGetValue(id, out Charakter? charakter))
+	if (fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
 		return Results.Ok(charakter);
 	return Results.NotFound();
 });
 
 
 // Ein neuer Charakter wird angelegt
-app.MapPost("/charaktere", (CharDto neuerChar) => 
+app.MapPost("/charaktere", (CharDto neuerChar, FakeDb fakeDb) => 
 {
     // Neue Id erstellen
-    naechsterCharId++;
+    fakeDb.NaechsterCharId++;
     // Andere Vorgehensweise für Multithreading (besser):
     // Interlocked.Increment(ref naechsterChar);
 
     // Dto in Model umwandeln (CharErstellen => Charakter)
     var charZumHinzufuegen = new Charakter
     {
-        Id = naechsterCharId,
+        Id = fakeDb.NaechsterCharId,
         Name = neuerChar.Name,
         Element = neuerChar.Element,
         Waffentyp = neuerChar.Waffentyp,
@@ -58,31 +58,31 @@ app.MapPost("/charaktere", (CharDto neuerChar) =>
 
     // Charakter der Liste hinzufügen
     // Falls hier ein Fehler auftreten sollte (was NIE passieren sollte) wird ein Statuscode (ServerError) zurückgegeben
-    if (!charDict.TryAdd(naechsterCharId, charZumHinzufuegen))
+    if (!fakeDb.CharDict.TryAdd(fakeDb.NaechsterCharId, charZumHinzufuegen))
         Results.StatusCode(StatusCodes.Status500InternalServerError);
 
     // Return Created (Statuscode 201)
     // Bei Created gibt man den Pfad wo sich diese Objekt befindet und das Objekt zurück
-    return Results.Created($"/charaktere/{naechsterCharId}", charZumHinzufuegen);
+    return Results.Created($"/charaktere/{fakeDb.NaechsterCharId}", charZumHinzufuegen);
 });
 
 
 // Ein bestimmter Charakter wird gelöscht
-app.MapDelete("/charaktere/{id}", (int id) => 
+app.MapDelete("/charaktere/{id}", (int id, FakeDb fakeDb) => 
 {
-    if (!charDict.Remove(id, out var _))
+    if (!fakeDb.CharDict.Remove(id, out var _))
         return Results.NotFound("Kein Charakter mit dieser Id");
 
-    naechsterCharId--;
+    fakeDb.NaechsterCharId--;
 
     return Results.NoContent();
 });
 
 
 // Ein bestimmter Charakter wird verändert
-app.MapPut("/charaktere/{id}", (int id, CharDto charGeupdated) => 
+app.MapPut("/charaktere/{id}", (int id, CharDto charGeupdated, FakeDb fakeDb) => 
 {
-    if (!charDict.TryGetValue(id, out Charakter? charakter))
+    if (!fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
         return Results.NotFound(charakter);
 
     charakter.Name = charGeupdated.Name; 
@@ -93,7 +93,6 @@ app.MapPut("/charaktere/{id}", (int id, CharDto charGeupdated) =>
 
     return Results.Ok(charakter);
 } );
-
 
 
 
