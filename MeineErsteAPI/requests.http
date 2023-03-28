@@ -41,3 +41,6 @@ Content-Type: application/json
 ###
 # Charakter löschen
 DELETE http://localhost:5086/charaktere/2
+
+###
+DELETE http://localhost:5086/charaktere/7

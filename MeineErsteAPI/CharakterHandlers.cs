@@ -5,22 +5,20 @@ namespace MeineErsteAPI
 {
     public class CharakterHandlers
     {
-        public static IEnumerable<Charakter> AlleCharsZurueckgeben(FakeDb fakeDb) => fakeDb.CharDict.Values;
+        public static IEnumerable<Charakter> AlleCharsZurueckgeben(CharContext context) => context.Charaktere;
 
-        public static IResult EinCharZurueckgeben(int id, FakeDb fakeDb)
+        public static IResult EinCharZurueckgeben(int id, CharContext context)
         {
-            if (fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
+            var charakter = context.Charaktere.FirstOrDefault(x => x.Id == id);
+            if (charakter != null)
                 return Results.Ok(charakter);
             return Results.NotFound();
         }
 
-        public static IResult CharHinzufuegen(CharDto neuerChar, FakeDb fakeDb)
+        public static IResult CharHinzufuegen(CharDto neuerChar, CharContext context)
         {
-            fakeDb.NaechsterCharId++;
-
             var charZumHinzufuegen = new Charakter
             {
-                Id = fakeDb.NaechsterCharId,
                 Name = neuerChar.Name,
                 Element = neuerChar.Element,
                 Waffentyp = neuerChar.Waffentyp,
@@ -28,34 +26,43 @@ namespace MeineErsteAPI
                 HabIch = neuerChar.HabIch
             };
 
-            if (!fakeDb.CharDict.TryAdd(fakeDb.NaechsterCharId, charZumHinzufuegen))
-                Results.StatusCode(StatusCodes.Status500InternalServerError);
+            context.Charaktere.Add(charZumHinzufuegen);
 
-            return Results.Created($"/charaktere/{fakeDb.NaechsterCharId}", charZumHinzufuegen);
+            context.SaveChanges();
+
+            return Results.Created($"/charaktere/{charZumHinzufuegen.Id}", charZumHinzufuegen);
         }
 
-        public static IResult CharLoeschen(int id, FakeDb fakeDb)
+        public static IResult CharLoeschen(int id, CharContext context)
         {
-            if (!fakeDb.CharDict.Remove(id, out var _))
+            var charakterZumLoeschen = context.Charaktere.FirstOrDefault(x => x.Id == id);
+
+            if (charakterZumLoeschen == null)
                 return Results.NotFound("Kein Charakter mit dieser Id");
 
-            fakeDb.NaechsterCharId--;
+            context.Charaktere.Remove(charakterZumLoeschen);
+
+            context.SaveChanges();
 
             return Results.NoContent();
         }
 
-        public static IResult CharAendern(int id, CharDto charGeupdated, FakeDb fakeDb)
+        public static IResult CharAendern(int id, CharDto charGeupdated, CharContext context)
         {
-            if (!fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
-                return Results.NotFound(charakter);
+            var charakterZumAendern = context.Charaktere.FirstOrDefault(x => x.Id == id);
 
-            charakter.Name = charGeupdated.Name; 
-            charakter.Element = charGeupdated.Element; 
-            charakter.Waffentyp = charGeupdated.Waffentyp; 
-            charakter.Sterne = charGeupdated.Sterne; 
-            charakter.HabIch = charGeupdated.HabIch;
+            if (charakterZumAendern == null)
+                return Results.NotFound(charakterZumAendern);
 
-            return Results.Ok(charakter);
+            charakterZumAendern.Name = charGeupdated.Name;
+            charakterZumAendern.Element = charGeupdated.Element;
+            charakterZumAendern.Waffentyp = charGeupdated.Waffentyp;
+            charakterZumAendern.Sterne = charGeupdated.Sterne;
+            charakterZumAendern.HabIch = charGeupdated.HabIch;
+
+            context.SaveChanges();
+
+            return Results.Ok(charakterZumAendern);
         }
     }
 }

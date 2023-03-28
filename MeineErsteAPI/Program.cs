@@ -1,10 +1,15 @@
 using MeineErsteAPI;
 using MeineErsteAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("config.json");
 
 builder.Services.AddSingleton<FakeDb>();
+
+builder.Services.AddDbContext<CharContext>(
+    opts => opts.UseSqlServer(builder.Configuration.GetConnectionString("CharDb")));
 
 var app = builder.Build();
 app.MapGet("/", () => "Hello World");

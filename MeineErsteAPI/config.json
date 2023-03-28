@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "CharDb": "Data Source=localhost;Initial Catalog=CharakterDB;User Id=sa;Password=User2019$;TrustServerCertificate=true;"
+  }
+}
