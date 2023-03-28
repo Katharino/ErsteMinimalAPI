@@ -15,5 +15,5 @@
     //Dto (= Data Tranfer Model). Hier können wir einen record verwenden. Dto's sind ähnlich wie ViewModels.
     //Dto => Datenübertragung (z.B. zwischen Methoden)
     //ViewModel => Datenanzeige an den Endbenutzer
-    record CharDto(string Name, string Element, string Waffentyp, int Sterne, bool HabIch);
+    public record CharDto(string Name, string Element, string Waffentyp, int Sterne, bool HabIch);
  }

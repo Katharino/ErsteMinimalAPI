@@ -25,74 +25,19 @@ app.MapGet("/", () => "Hello World");
 // - HabIch
 
 // Alle Charaktere werden zurückgegeben
-app.MapGet("/charaktere", (FakeDb fakeDb) => fakeDb.CharDict.Values);
-
+app.MapGet("/charaktere", CharakterHandlers.AlleCharsZurueckgeben);
 
 // Ein bestimmter Charakter wird zurückgegeben
-app.MapGet("/charaktere/{id}", (int id, FakeDb fakeDb) =>
-{
-	if (fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
-		return Results.Ok(charakter);
-	return Results.NotFound();
-});
-
+app.MapGet("/charaktere/{id}", CharakterHandlers.EinCharZurueckgeben);
 
 // Ein neuer Charakter wird angelegt
-app.MapPost("/charaktere", (CharDto neuerChar, FakeDb fakeDb) => 
-{
-    // Neue Id erstellen
-    fakeDb.NaechsterCharId++;
-    // Andere Vorgehensweise für Multithreading (besser):
-    // Interlocked.Increment(ref naechsterChar);
-
-    // Dto in Model umwandeln (CharErstellen => Charakter)
-    var charZumHinzufuegen = new Charakter
-    {
-        Id = fakeDb.NaechsterCharId,
-        Name = neuerChar.Name,
-        Element = neuerChar.Element,
-        Waffentyp = neuerChar.Waffentyp,
-        Sterne = neuerChar.Sterne,
-        HabIch = neuerChar.HabIch
-    };
-
-    // Charakter der Liste hinzufügen
-    // Falls hier ein Fehler auftreten sollte (was NIE passieren sollte) wird ein Statuscode (ServerError) zurückgegeben
-    if (!fakeDb.CharDict.TryAdd(fakeDb.NaechsterCharId, charZumHinzufuegen))
-        Results.StatusCode(StatusCodes.Status500InternalServerError);
-
-    // Return Created (Statuscode 201)
-    // Bei Created gibt man den Pfad wo sich diese Objekt befindet und das Objekt zurück
-    return Results.Created($"/charaktere/{fakeDb.NaechsterCharId}", charZumHinzufuegen);
-});
-
+app.MapPost("/charaktere", CharakterHandlers.CharHinzufuegen);
 
 // Ein bestimmter Charakter wird gelöscht
-app.MapDelete("/charaktere/{id}", (int id, FakeDb fakeDb) => 
-{
-    if (!fakeDb.CharDict.Remove(id, out var _))
-        return Results.NotFound("Kein Charakter mit dieser Id");
-
-    fakeDb.NaechsterCharId--;
-
-    return Results.NoContent();
-});
-
+app.MapDelete("/charaktere/{id}", CharakterHandlers.CharLoeschen);
 
 // Ein bestimmter Charakter wird verändert
-app.MapPut("/charaktere/{id}", (int id, CharDto charGeupdated, FakeDb fakeDb) => 
-{
-    if (!fakeDb.CharDict.TryGetValue(id, out Charakter? charakter))
-        return Results.NotFound(charakter);
-
-    charakter.Name = charGeupdated.Name; 
-    charakter.Element = charGeupdated.Element; 
-    charakter.Waffentyp = charGeupdated.Waffentyp; 
-    charakter.Sterne = charGeupdated.Sterne; 
-    charakter.HabIch = charGeupdated.HabIch;
-
-    return Results.Ok(charakter);
-} );
+app.MapPut("/charaktere/{id}", CharakterHandlers.CharAendern);
 
 
 
