@@ -1,4 +1,5 @@
 ﻿using MeineErsteAPI.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace MeineErsteAPI
@@ -7,15 +8,15 @@ namespace MeineErsteAPI
     {
         public static IEnumerable<Charakter> AlleCharsZurueckgeben(CharContext context) => context.Charaktere;
 
-        public static IResult EinCharZurueckgeben(int id, CharContext context)
+        public static async Task<IResult> EinCharZurueckgeben(int id, CharContext context)
         {
-            var charakter = context.Charaktere.FirstOrDefault(x => x.Id == id);
+            var charakter = await context.Charaktere.FirstOrDefaultAsync(x => x.Id == id);
             if (charakter != null)
                 return Results.Ok(charakter);
             return Results.NotFound();
         }
 
-        public static IResult CharHinzufuegen(CharDto neuerChar, CharContext context)
+        public static async Task<IResult> CharHinzufuegen(CharDto neuerChar, CharContext context)
         {
             var charZumHinzufuegen = new Charakter
             {
@@ -28,12 +29,12 @@ namespace MeineErsteAPI
 
             context.Charaktere.Add(charZumHinzufuegen);
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return Results.Created($"/charaktere/{charZumHinzufuegen.Id}", charZumHinzufuegen);
         }
 
-        public static IResult CharLoeschen(int id, CharContext context)
+        public static async Task<IResult> CharLoeschen(int id, CharContext context)
         {
             var charakterZumLoeschen = context.Charaktere.FirstOrDefault(x => x.Id == id);
 
@@ -42,12 +43,12 @@ namespace MeineErsteAPI
 
             context.Charaktere.Remove(charakterZumLoeschen);
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return Results.NoContent();
         }
 
-        public static IResult CharAendern(int id, CharDto charGeupdated, CharContext context)
+        public static async Task<IResult> CharAendern(int id, CharDto charGeupdated, CharContext context)
         {
             var charakterZumAendern = context.Charaktere.FirstOrDefault(x => x.Id == id);
 
@@ -60,7 +61,7 @@ namespace MeineErsteAPI
             charakterZumAendern.Sterne = charGeupdated.Sterne;
             charakterZumAendern.HabIch = charGeupdated.HabIch;
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return Results.Ok(charakterZumAendern);
         }
