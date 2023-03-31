@@ -6,7 +6,7 @@ namespace MeineErsteAPI
 {
     public class CharakterHandlers
     {
-        public static IEnumerable<Charakter> AlleCharsZurueckgeben(CharContext context) => context.Charaktere;
+        public static async Task<IEnumerable<Charakter>> AlleCharsZurueckgeben(CharContext context) => await context.Charaktere.ToListAsync();
 
         public static async Task<IResult> EinCharZurueckgeben(int id, CharContext context)
         {
